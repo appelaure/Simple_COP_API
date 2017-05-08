@@ -34,25 +34,23 @@
 
     <script>
 
-
         var map;
         var geojson;
-
 
         function getData() {
 
             var bounds = map.getBounds()._northEast.lng + "," + map.getBounds()._northEast.lat + "," + map.getBounds()._southWest.lng + "," + map.getBounds()._southWest.lat;
 
-
             $.ajax({
                 dataType: "json",
+                data: "bbo=" + bounds + "&limit=" + 80 + "&page=" + 8,
                 beforeSend: function () {
                     if (geojson != null) {
                         geojson.removeFrom(map);
                     }
 
                 },
-                url: "/api/cop/dsfl?bbo=" + bounds,
+                url: "/rest/api/dsfl",
                 success: function (data) {
                     geojson = L.geoJson(data, {
                         onEachFeature: function (feature, layer) {

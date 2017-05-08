@@ -19,7 +19,7 @@ public class Bootstrap extends HttpServlet {
 
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion("1.0.0");
-        beanConfig.setBasePath("http://localhost:8080/api");
+        beanConfig.setBasePath("http://localhost:8080/rest");
         beanConfig.setResourcePackage("io.swagger.resources");
         beanConfig.setScan(true);
     }
