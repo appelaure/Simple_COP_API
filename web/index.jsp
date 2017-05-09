@@ -8,7 +8,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
     <head>
-        <title>KB API Simple example</title>
+        <title>KB API Demo</title>
 
         <!-- LEAFLET -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
@@ -54,6 +54,12 @@
         #map {
             height: 680px;
         }
+
+        .navbar-brand {
+            background: transparent url(/images/logo_inverse.png) no-repeat top left !important;
+            background-size: cover;
+            width: 150px;
+        }
     </style>
 
     <body>
@@ -67,12 +73,12 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="#">API Demo</a>
+                    <a class="navbar-brand" href="#"></a>
                 </div>
                 <div id="navbar" class="collapse navbar-collapse">
                     <ul class="nav navbar-nav">
-                        <li class="active"><a href="#">DSFL</a></li>
-                        <li><a href="/">COP</a></li>
+                        <li class="active"><a href="/dsfl.html">DSFL</a></li>
+                        <li><a href="/cop.html">COP</a></li>
                     </ul>
                 </div><!--/.nav-collapse -->
             </div>
@@ -80,6 +86,8 @@
 
         <div class="container">
             <div class="starter-template">
+                <span id="count"></span>
+                <br>
                 <div id="map"></div>
             </div>
         </div><!-- /.container -->
@@ -90,10 +98,10 @@
         var map;
         var geojson;
 
-        function getData() {
 
+        function getData() {
             var bounds = map.getBounds()._northEast.lng + "," + map.getBounds()._northEast.lat + "," + map.getBounds()._southWest.lng + "," + map.getBounds()._southWest.lat;
-            console.log(bounds);
+
             $.ajax({
                 dataType: "json",
                 beforeSend: function () {
@@ -101,8 +109,11 @@
                         geojson.removeFrom(map);
                     }
                 },
-                url: "rest/api/dsfl?bbo=" + bounds + "&limit=10",
-                success: function (data) {
+                url: "rest/api/dsfl?bbo=" + bounds + "&limit=150",
+                success: function (data, textStatus, request) {
+
+                    $('#count').html("Result " + data.length + "/" + request.getResponseHeader('Pagination-Count'));
+
                     geojson = L.geoJson(data, {
                         onEachFeature: function (feature, layer) {
                             var popup = L.popup({

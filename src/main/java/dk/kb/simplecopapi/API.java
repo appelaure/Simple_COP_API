@@ -29,6 +29,8 @@ public class API {
 
     private String copURL = "http://cop.kb.dk/cop/syndication";
     private String dsflURL = "http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml";
+    private String contentURL = "http://www.kb.dk/cop/content";
+    private String navigationURL = "http://www.kb.dk/cop/navigation";
 
     @GET
     @ApiOperation(value = "Get the list of editions ",
@@ -75,11 +77,11 @@ public class API {
     }
 
     @GET
-    @ApiOperation(value = "Get a list of object ion a specific edition ",
+    @ApiOperation(value = "Get a list of items from a specific edition ",
             response = API.class)
-    @Path("edition/")
+    @Path("cop/")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getEdition(
+    public Response getItemsInsideEditions(
             @ApiParam(value = "Edition id", name = "id", required = true) @QueryParam("id") String id,
             @ApiParam(value = "Search query", name = "query") @QueryParam("query") String query,
             @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
@@ -87,7 +89,6 @@ public class API {
             @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
             @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter)
             throws Exception {
-
 
         List<Edition> editions = new ArrayList<Edition>();
 
@@ -98,6 +99,7 @@ public class API {
         URLReader reader = new URLReader();
 
         String url = copURL + id + "?format=kml";
+
         if (page != null) {
             url += "&page=" + page;
         }
@@ -121,8 +123,7 @@ public class API {
         NodeList placemarkList = (NodeList) xPath.compile("//Placemark").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
-        NodeList linkList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='link']").evaluate(xmlDocument, XPathConstants.NODESET);
-        NodeList descriptionList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='description']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList linkList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectLink']").evaluate(xmlDocument, XPathConstants.NODESET);
 
         totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
         itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
@@ -133,7 +134,6 @@ public class API {
             Edition edition = new Edition();
             edition.setThumbnailURI(thumbnailList.item(i).getTextContent());
             edition.setLink(linkList.item(i).getTextContent());
-            edition.setDescription(descriptionList.item(i).getTextContent());
             edition.setTitle(nameList.item(i).getTextContent());
             editions.add(edition);
         }
@@ -143,7 +143,40 @@ public class API {
                 header("Pagination-Count", totalResults).
                 header("Pagination-Page", startIndex).
                 header("Pagination-Limit", itemsPerPage).build();
+    }
 
+
+    @GET
+    @ApiOperation(value = "Get the content of an object ",
+            response = API.class)
+    @Path("content/")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getContent(
+            @ApiParam(value = "Edition id", name = "identifier", required = true) @QueryParam("identifier") String identifier,
+            @ApiParam(value = "Edition id", name = "objectId", required = true) @QueryParam("objectId") String objectId)
+            throws Exception {
+
+        URLReader reader = new URLReader();
+        String url = contentURL  + identifier +  objectId;
+        Document xmlDocument = reader.getDocument(url);
+        return Response.status(200).entity(xmlDocument).build();
+    }
+
+    @GET
+    @ApiOperation(value = "The subject hierarchy needed for filtering and building the browsing service",
+            response = API.class)
+    @Path("navigation/")
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getSubjectHierarchy(
+            @ApiParam(value = "Edition id", name = "identifier", required = true) @QueryParam("identifier") String identifier,
+            @ApiParam(value = "Edition id", name = "subjectId", required = true) @QueryParam("subjectId") String subjectId)
+            throws Exception {
+
+        URLReader reader = new URLReader();
+        String url = contentURL + identifier + subjectId;
+        Document xmlDocument = reader.getDocument(url);
+        System.out.println(url);
+        return Response.status(200).entity(xmlDocument).build();
     }
 
     @GET
@@ -219,7 +252,6 @@ public class API {
         }
 
         pictures.setFeatures(pictureList);
-
 
         return Response.status(200).
                 entity(pictureList).
