@@ -8,7 +8,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.xpath.XPath;
@@ -23,7 +26,8 @@ import java.util.List;
 @Api
 public class API {
 
-    private String copURL = "http://cop.kb.dk/cop/editions";
+
+    private String copURL = "http://cop.kb.dk/cop/syndication";
     private String dsflURL = "http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml";
 
     @GET
@@ -38,7 +42,7 @@ public class API {
 
         try {
             URLReader reader = new URLReader();
-            Document doc = reader.getDocument(copURL + "/editions/any/2009/jul/editions/da");
+            Document doc = reader.getDocument("http://cop.kb.dk/cop/editions/editions/any/2009/jul/editions/da");
             doc.getDocumentElement().normalize();
 
             NodeList nodeList = doc.getElementsByTagName("item");
@@ -71,17 +75,88 @@ public class API {
     }
 
     @GET
-    @Path("dsfl")
-    @ApiOperation(value = "Get a list of pictures (url, coordinates and descriptions) inside a bounding box",
-            notes = "To know hoe many images are available inside this bounding box use the function ")
-    @HeaderParam(value="Pagination-Count")
+    @ApiOperation(value = "Get a list of object ion a specific edition ",
+            response = API.class)
+    @Path("edition/")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getPhotosInsideBBO(@ApiParam(value = "The bounding box", name = "bbo", required = true) @QueryParam("bbo") String bbo,
-                                       @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
-                                       @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
-                                       @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
-                                       @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter) {
+    public Response getEdition(
+            @ApiParam(value = "Edition id", name = "id", required = true) @QueryParam("id") String id,
+            @ApiParam(value = "Search query", name = "query") @QueryParam("query") String query,
+            @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
+            @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
+            @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
+            @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter)
+            throws Exception {
 
+
+        List<Edition> editions = new ArrayList<Edition>();
+
+        String totalResults = "unknown";
+        String startIndex = "unknown";
+        String itemsPerPage = "unknown";
+
+        URLReader reader = new URLReader();
+
+        String url = copURL + id + "?format=kml";
+        if (page != null) {
+            url += "&page=" + page;
+        }
+        if (limit != null) {
+            url += "&itemsPerPage=" + limit;
+        }
+        if (query != null) {
+            url += "&query=" + query;
+        }
+        if (notBefore != null) {
+            url += "&notBefore" + notBefore;
+        }
+        if (notAfter != null) {
+            url += "&notAfter" + notAfter;
+        }
+
+        Document xmlDocument = reader.getDocument(url);
+        XPathFactory factory = XPathFactory.newInstance();
+        XPath xPath = factory.newXPath();
+
+        NodeList placemarkList = (NodeList) xPath.compile("//Placemark").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList linkList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='link']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList descriptionList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='description']").evaluate(xmlDocument, XPathConstants.NODESET);
+
+        totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
+        itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
+        startIndex = (String) xPath.evaluate("//startIndex", xmlDocument);
+
+        for (int i = 0; i < placemarkList.getLength(); i++) {
+
+            Edition edition = new Edition();
+            edition.setThumbnailURI(thumbnailList.item(i).getTextContent());
+            edition.setLink(linkList.item(i).getTextContent());
+            edition.setDescription(descriptionList.item(i).getTextContent());
+            edition.setTitle(nameList.item(i).getTextContent());
+            editions.add(edition);
+        }
+
+        return Response.status(200).
+                entity(editions).
+                header("Pagination-Count", totalResults).
+                header("Pagination-Page", startIndex).
+                header("Pagination-Limit", itemsPerPage).build();
+
+    }
+
+    @GET
+    @Path("dsfl/")
+    @ApiOperation(value = "Get a list of pictures (url, coordinates and descriptions) inside a bounding box")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response getDSFLPhotos(
+            @ApiParam(value = "The bounding box", name = "bbo", required = true) @QueryParam("bbo") String bbo,
+            @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
+            @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
+            @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
+            @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter)
+            throws Exception {
 
         Pictures pictures = new Pictures();
         pictures.setType("FeatureCollection");
@@ -91,7 +166,9 @@ public class API {
         List<Picture> pictureList = new ArrayList<Picture>();
         URLReader reader = new URLReader();
 
+        if (bbo == null) throw new NotAuthorizedException("BBO is missing");
         String url = dsflURL + "&bbo=" + bbo;
+
         if (notBefore != null) {
             url += "&notBefore" + notBefore;
         }
@@ -105,48 +182,44 @@ public class API {
             url += "&itemsPerPage=" + limit;
         }
 
-        try {
-            Document xmlDocument = reader.getDocument(url);
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xPath = factory.newXPath();
+        Document xmlDocument = reader.getDocument(url);
+        XPathFactory factory = XPathFactory.newInstance();
+        XPath xPath = factory.newXPath();
 
-            NodeList placemarkList = (NodeList) xPath.compile("//Placemark").evaluate(xmlDocument, XPathConstants.NODESET);
-            NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
-            NodeList coordList = (NodeList) xPath.compile("//Placemark/Point/coordinates").evaluate(xmlDocument, XPathConstants.NODESET);
-            NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
-            totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
-            itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
-            startIndex = (String) xPath.evaluate("//startIndex", xmlDocument);
+        NodeList placemarkList = (NodeList) xPath.compile("//Placemark").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList coordList = (NodeList) xPath.compile("//Placemark/Point/coordinates").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
+        totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
+        itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
+        startIndex = (String) xPath.evaluate("//startIndex", xmlDocument);
 
-            for (int i = 0; i < placemarkList.getLength(); i++) {
+        for (int i = 0; i < placemarkList.getLength(); i++) {
 
-                Picture picture = new Picture();
+            Picture picture = new Picture();
 
-                Geometry geometry = new Geometry();
-                geometry.setType("Point");
-                List<Float> list = new ArrayList<Float>();
-                String[] s = coordList.item(i).getTextContent().split(",");
-                list.add(Float.parseFloat(s[0]));
-                list.add(Float.parseFloat(s[1]));
-                geometry.setCoordinates(list);
+            Geometry geometry = new Geometry();
+            geometry.setType("Point");
+            List<Float> list = new ArrayList<Float>();
+            String[] s = coordList.item(i).getTextContent().split(",");
+            list.add(Float.parseFloat(s[0]));
+            list.add(Float.parseFloat(s[1]));
+            geometry.setCoordinates(list);
 
-                picture.setGeometry(geometry);
+            picture.setGeometry(geometry);
 
-                Properties properties = new Properties();
-                properties.setName(nameList.item(i).getTextContent());
-                properties.setThumbnail(thumbnailList.item(i).getTextContent());
-                picture.setProperties(properties);
+            Properties properties = new Properties();
+            properties.setName(nameList.item(i).getTextContent());
+            properties.setThumbnail(thumbnailList.item(i).getTextContent());
+            picture.setProperties(properties);
 
-                picture.setType("Feature");
+            picture.setType("Feature");
 
-                pictureList.add(picture);
-            }
-
-            pictures.setFeatures(pictureList);
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            pictureList.add(picture);
         }
+
+        pictures.setFeatures(pictureList);
+
 
         return Response.status(200).
                 entity(pictureList).

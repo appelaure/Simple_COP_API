@@ -1,0 +1,182 @@
+<html>
+    <head>
+        <title>KB API Demo</title>
+
+        <!-- JQUERY -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+        <!-- BOOTSTRAP -->
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+              integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+              crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+              integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+              crossorigin="anonymous">
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+                integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+                crossorigin="anonymous"></script>
+
+    </head>
+    <style>
+
+        body {
+            padding-top: 50px;
+        }
+
+        .starter-template {
+            padding: 40px 15px;
+            text-align: center;
+        }
+
+        .navbar-brand {
+            background: transparent url(/images/logo_inverse.png) no-repeat top left !important;
+            background-size: cover;
+            width: 150px;
+        }
+
+        div.gallery {
+            border: 1px solid #ccc;
+        }
+
+        div.gallery:hover {
+            border: 1px solid #777;
+        }
+
+        div.gallery img {
+            width: 100%;
+            height: auto;
+        }
+
+        div.desc {
+            padding: 15px;
+            text-align: center;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .responsive {
+            padding: 0 6px;
+            float: left;
+            width: 24.99999%;
+        }
+
+        @media only screen and (max-width: 700px) {
+            .responsive {
+                width: 49.99999%;
+                margin: 6px 0;
+            }
+        }
+
+        @media only screen and (max-width: 500px) {
+            .responsive {
+                width: 100%;
+            }
+        }
+
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+    </style>
+
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#"></a>
+                </div>
+                <div id="navbar" class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="/dsfl.html">DSFL</a></li>
+                        <li class="active"><a href="/cop.html">COP</a></li>
+                    </ul>
+                </div><!--/.nav-collapse -->
+
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="starter-template">
+                <div class="row">
+                    <div class="col-xs-12  col-md-5">
+                        <div class="form-group">
+                            <select class="selectpicker form-control" name="editions" id="editions">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-md-7">
+                        <input type="text" class="form-control" id="usr">
+                    </div>
+                </div>
+                <div id="content"></div>
+            </div>
+        </div><!-- /.container -->
+    </body>
+
+    <script>
+
+        function getData(identifier) {
+            $.ajax({
+                dataType: "json",
+                url: "rest/api/edition?id=" + identifier,
+                success: function (data) {
+                    var html = '';
+                    $.each(data, function (i, row) {
+                        console.log(row['thumbnailURI']);
+                        html += ' <div class="responsive"><div class="gallery">' +
+                            '<a target="_blank" href="' + row['link'] + '">' +
+                            '<img src="' + row['thumbnailURI'] + '" width="300" height="200"></a> ' +
+                            '<div class="desc">' + row['title'] + '</div>' +
+                            '</div>' +
+                            '</div>';
+                    });
+                    $('#content').html(html);
+                },
+                error: function () {
+                    $('#content').html('<div class="alert alert-info"><strong>Sorry</strong> No data available</div>');
+                }
+            });
+        }
+        ;
+
+        function getEditions() {
+
+            $.ajax({
+                dataType: "json",
+                url: "rest/api/editions",
+                success: function (data) {
+                    var html = "";
+                    $.each(data, function (i, row) {
+                        html += ' <option value="' + row['identifier'] + '">' + row['title'] + '</option>';
+                    });
+                    getData(data[0].identifier);
+                    $('#editions').html(html);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            getEditions();
+            $('#editions').on('change', function () {
+                getData(this.value);
+            })
+        });
+    </script>
+
+</html>
