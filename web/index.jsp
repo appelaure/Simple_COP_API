@@ -14,11 +14,11 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
               integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
               crossorigin=""/>
-        <link rel="stylesheet" href="/markerCluster/MarkerCluster.css"/>
+        <link rel="stylesheet" href="/css/MarkerCluster.css"/>
         <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
                 integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
                 crossorigin=""></script>
-        <script src="/markerCluster/leaflet.markercluster-src.js"></script>
+        <script src="/js/leaflet.markercluster-src.js"></script>
 
         <!-- JQUERY -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -80,38 +80,51 @@
                         <li class="active"><a href="/dsfl.html">DSFL</a></li>
                         <li><a href="/cop.html">COP</a></li>
                     </ul>
-                </div><!--/.nav-collapse -->
+                </div>
             </div>
         </nav>
 
         <div class="container">
             <div class="starter-template">
                 <span id="count"></span>
+                <div id="url"></div>
                 <br>
                 <div id="map"></div>
             </div>
-        </div><!-- /.container -->
+        </div>
     </body>
 
     <script>
 
         var map;
         var geojson;
-
+        var xhr;
+        var markers;
 
         function getData() {
             var bounds = map.getBounds()._northEast.lng + "," + map.getBounds()._northEast.lat + "," + map.getBounds()._southWest.lng + "," + map.getBounds()._southWest.lat;
 
-            $.ajax({
-                dataType: "json",
-                beforeSend: function () {
-                    if (geojson != null) {
-                        geojson.removeFrom(map);
-                    }
-                },
-                url: "rest/api/dsfl?bbo=" + bounds + "&limit=150",
-                success: function (data, textStatus, request) {
+            if (xhr != null){
+                xhr.abort();
+            }
 
+            //Display the url
+            var html = "<h3>URL</h3><strong>JSON: </strong> http://localhost:8080/rest/api/dsfl?bbo=" + bounds;
+            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=rss&bbo=" + bounds;
+            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml&bbo=" + bounds;
+            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=mods&bbo=" + bounds;
+            $('#url').html(html);
+
+
+
+            xhr = $.ajax({
+                dataType: "json",
+                url: "rest/api/dsfl?bbo=" + bounds + "&limit=500",
+                success: function (data, textStatus, request) {
+                    if (geojson != null) {
+                        markers.removeLayer(geojson);
+                        geojson = null;
+                    }
                     $('#count').html("Result " + data.length + "/" + request.getResponseHeader('Pagination-Count'));
 
                     geojson = L.geoJson(data, {
@@ -126,9 +139,7 @@
                     });
 
                     if (geojson != null) {
-                        var markers = L.markerClusterGroup();
                         markers.addLayer(geojson);
-                        markers.addTo(map);
                     }
                 }
             });
@@ -138,10 +149,14 @@
 
             map = L.map('map').setView([55.48, 10.4], 10);
 
+
             var OpenStreetMap_BlackAndWhite = L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
                 maxZoom: 18,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
+
+            markers = L.markerClusterGroup();
+            markers.addTo(map);
 
             map.on('moveend', function () {
                 getData();

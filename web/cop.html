@@ -11,6 +11,10 @@
               integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
               crossorigin="anonymous">
 
+        <!-- PAGINATION -->
+        <script type="text/javascript" src="js/jquery.simplePagination.js"></script>
+        <link type="text/css" rel="stylesheet" href="css/simplePagination.css"/>
+
         <!-- Optional theme -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
               integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
@@ -106,14 +110,12 @@
                         <li><a href="/index.jsp">DSFL</a></li>
                         <li class="active"><a href="/cop.html">COP</a></li>
                     </ul>
-                </div><!--/.nav-collapse -->
-
+                </div>
             </div>
         </nav>
 
         <div class="container">
             <div class="starter-template">
-
                 <div class="row">
                     <form id="form" class="form-inline">
                         <div class="form-group">
@@ -126,33 +128,58 @@
                         <button type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
-                <span id="count"></span>
+                <div class="pagination"></div>
+                <br>
+                <div id="total"></div>
+                <div id="url"></div>
                 <br>
                 <div id="content"></div>
             </div>
-        </div><!-- /.container -->
+        </div>
     </body>
 
     <script>
 
-        function getData() {
 
-            $.ajax({
+        var pagination;
+        var xhr;
+
+        function getData(currentPage) {
+
+            //Display the url
+            var url = "rest/api/cop?id=" + $('#editions').val() + "&limit=50&query=" + $('#query').val() + "&page=" + currentPage;
+            var html = "<h3>URL</h3><strong>JSON: </strong>http://localhost:8080/" + url;
+            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=rss";
+            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=kml";
+            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=mods";
+            $('#url').html(html);
+
+            //Abort on new request
+            if (xhr != null){
+                xhr.abort();
+            }
+
+            //Get data
+            xhr = $.ajax({
                 dataType: "json",
-                url: "rest/api/cop?id=" + $('#editions').val() + "&limit=20&query=" + $('#query').val(),
-                success: function (data, textStatus, request) {
+                url: url,
+                success: function (data, textStatus, response) {
+                    $('#total').html('Total number of items: ' + response.getResponseHeader('total'));
 
-                    $('#count').html("Result " + data.length + "/" + request.getResponseHeader('Pagination-Count'));
                     var html = '';
                     $.each(data, function (i, row) {
                         html += ' <div class="responsive"><div class="gallery">' +
                             '<a target="_blank" href="' + row['link'] + '">' +
-                            '<img src="' + row['thumbnailURI'] + '" width="250" height="250"></a> ' +
+                            '<img src="' + row['thumbnailURI'] + '"></a> ' +
                             '<div class="desc">' + row['title'] + '</div>' +
                             '</div>' +
                             '</div>';
                     });
                     $('#content').html(html);
+
+                    //initialise the pagination
+                    initializePagination(response.getResponseHeader('Pagination-Count'));
+
                 },
                 error: function () {
                     $('#content').html('<div class="alert alert-info"><strong>Sorry</strong> No data available</div>');
@@ -167,7 +194,7 @@
                 dataType: "json",
                 url: "rest/api/editions",
                 success: function (data) {
-                    var html = "<option value=''>Select an edition</option>";
+                    var html = ' <option value="">Select an edition</option>';
                     $.each(data, function (i, row) {
                         html += ' <option value="' + row['identifier'] + '">' + row['title'] + '</option>';
                     });
@@ -176,18 +203,33 @@
             });
         }
 
+        function initializePagination(totalPage) {
+
+            if (pagination != null && totalPage != pagination.pagination('getPagesCount')) {
+                pagination.pagination('updateItems', totalPage);
+            } else {
+                pagination = $('.pagination').pagination({
+                    pages: totalPage,
+                    cssStyle: 'compact-theme',
+                    onPageClick: function (pageNumber, event) {
+                        getData(pageNumber);
+                    }
+                });
+            }
+        }
+
         $(document).ready(function () {
+
             getEditions();
 
-           $('#editions').on('change', function () {
-                getData();
+            $('#editions').on('change', function() {
+                getData(1);
             })
 
-            $( "#form" ).submit(function( event ) {
-                getData();
+            $("#form").submit(function (event) {
+                getData(1);
                 event.preventDefault();
             });
-
         });
     </script>
 

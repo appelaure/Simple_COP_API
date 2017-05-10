@@ -27,13 +27,13 @@ import java.util.List;
 public class API {
 
 
-    private String copURL = "http://cop.kb.dk/cop/syndication";
+    private String copURL = "http://www.kb.dk/cop/syndication";
     private String dsflURL = "http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml";
     private String contentURL = "http://www.kb.dk/cop/content";
     private String navigationURL = "http://www.kb.dk/cop/navigation";
 
     @GET
-    @ApiOperation(value = "Get the list of editions ",
+    @ApiOperation(value = "Get the list of editions and retrieve the identifier of the edition, it is needed for any other call ",
             notes = "Only published editions",
             response = API.class,
             responseContainer = "List<Edition>")
@@ -138,9 +138,11 @@ public class API {
             editions.add(edition);
         }
 
+        int total = Integer.parseInt(totalResults)/Integer.parseInt(itemsPerPage);
         return Response.status(200).
                 entity(editions).
-                header("Pagination-Count", totalResults).
+                header("Total", totalResults).
+                header("Pagination-Count", total).
                 header("Pagination-Page", startIndex).
                 header("Pagination-Limit", itemsPerPage).build();
     }
@@ -173,7 +175,9 @@ public class API {
             throws Exception {
 
         URLReader reader = new URLReader();
-        String url = contentURL + identifier + subjectId;
+        String url = navigationURL + identifier + subjectId;
+
+        System.out.println(url);
         Document xmlDocument = reader.getDocument(url);
         System.out.println(url);
         return Response.status(200).entity(xmlDocument).build();
@@ -223,6 +227,13 @@ public class API {
         NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList coordList = (NodeList) xPath.compile("//Placemark/Point/coordinates").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList srcList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectImageSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList genreList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectGenre']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList subjectCreationDateList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectCreationDate']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList geographicList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectGeographic']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList recordCreationDateList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='recordCreationDate']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList recordChangeDateList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='recordCreationDate']").evaluate(xmlDocument, XPathConstants.NODESET);
+
         totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
         itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
         startIndex = (String) xPath.evaluate("//startIndex", xmlDocument);
@@ -244,6 +255,13 @@ public class API {
             Properties properties = new Properties();
             properties.setName(nameList.item(i).getTextContent());
             properties.setThumbnail(thumbnailList.item(i).getTextContent());
+            properties.setSrc(srcList.item(i).getTextContent());
+            properties.setGenre(genreList.item(i).getTextContent());
+            properties.setGeographic(geographicList.item(i).getTextContent());
+            properties.setSubjectCreationDate(subjectCreationDateList.item(i).getTextContent());
+            properties.setRecordCreationDate(recordCreationDateList.item(i).getTextContent());
+            properties.setRecordChangeDate(recordChangeDateList.item(i).getTextContent());
+
             picture.setProperties(properties);
 
             picture.setType("Feature");
