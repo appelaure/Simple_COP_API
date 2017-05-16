@@ -86,8 +86,8 @@ public class API {
             @ApiParam(value = "Search query", name = "query") @QueryParam("query") String query,
             @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
             @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
-            @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
-            @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter)
+            @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "before") @QueryParam("before") String notBefore,
+            @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "after") @QueryParam("after") String notAfter)
             throws Exception {
 
         List<Edition> editions = new ArrayList<Edition>();
@@ -110,11 +110,13 @@ public class API {
             url += "&query=" + query;
         }
         if (notBefore != null) {
-            url += "&notBefore" + notBefore;
+            url += "&notBefore=" + notBefore;
         }
         if (notAfter != null) {
-            url += "&notAfter" + notAfter;
+            url += "&notAfter=" + notAfter;
         }
+
+        System.out.println(url);
 
         Document xmlDocument = reader.getDocument(url);
         XPathFactory factory = XPathFactory.newInstance();
