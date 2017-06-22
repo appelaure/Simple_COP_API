@@ -116,17 +116,24 @@
             }
 
             //Display the url
-            var html = "<h3>URL</h3><strong>JSON: </strong> http://localhost:8080/rest/api/dsfl?bbo=" + bounds;
-            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=rss&bbo=" + bounds;
-            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml&bbo=" + bounds;
-            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=mods&bbo=" + bounds;
+            var html = "<h3>URL</h3><strong>JSON: </strong> http://localhost:8080/rest/api/dsfl?bbo=" + bounds+ "&itemsPerPage=500";
+            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=rss&bbo=" + bounds+ "&itemsPerPage=500";
+            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=kml&bbo=" + bounds+ "&itemsPerPage=500";
+            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication/images/luftfo/2011/maj/luftfoto/subject203?format=mods&bbo=" + bounds+ "&itemsPerPage=500";
             $('#url').html(html);
 
 
 
             xhr = $.ajax({
                 dataType: "json",
-                url: "rest/api/dsfl?bbo=" + bounds + "&limit=500",
+                url: "rest/api/dsfl?bbo=" + bounds + "&itemsPerPage=500",
+              /*  beforeSend: function(){
+                    if (geojson != null) {
+                        markers.removeLayer(geojson);
+                        geojson = null;
+                    }
+                    $('#count').html("");
+                },*/
                 success: function (data, textStatus, request) {
                     if (geojson != null) {
                         markers.removeLayer(geojson);

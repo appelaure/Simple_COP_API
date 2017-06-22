@@ -155,16 +155,16 @@
         function getData(currentPage) {
 
             //Display the url
-            var url = "rest/api/cop?limit=50"
+            var url = "rest/api/cop?itemsPerPage=50"
                 + "&id=" + $('#editions').val()
                 + "&query=" + $('#query').val()
                 + "&after=" + $('#notAfter').val()
                 + "&before=" + $('#notBefore').val()
                 + "&page=" + currentPage;
             var html = "<h3>URL</h3><strong>JSON: </strong>http://localhost:8080/" + url;
-            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=rss";
-            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=kml";
-            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?limit=50&query=" + $('#query').val() + "&page=" + currentPage + "&format=mods";
+            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" + "notBefore=" + $('#notBefore').val()+ "&notAfter=" + $('#notAfter').val() + "&format=rss";
+            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" +  "notBefore=" + $('#notBefore').val()+ "&notAfter=" + $('#notAfter').val()+ "&format=kml";
+            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" + "notBefore=" + $('#notBefore').val() + "&notAfter=" + $('#notAfter').val()+ "&format=mods";
             $('#url').html(html);
 
             //Abort on new request

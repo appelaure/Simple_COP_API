@@ -85,7 +85,7 @@ public class API {
             @ApiParam(value = "Edition id", name = "id", required = true) @QueryParam("id") String id,
             @ApiParam(value = "Search query", name = "query") @QueryParam("query") String query,
             @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
-            @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
+            @ApiParam(value = "Pagination-Limit", name = "itemsPerPage") @QueryParam("itemsPerPage") String itemsPerPage,
             @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "before") @QueryParam("before") String notBefore,
             @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "after") @QueryParam("after") String notAfter)
             throws Exception {
@@ -94,7 +94,7 @@ public class API {
 
         String totalResults = "unknown";
         String startIndex = "unknown";
-        String itemsPerPage = "unknown";
+
 
         URLReader reader = new URLReader();
 
@@ -103,8 +103,8 @@ public class API {
         if (page != null) {
             url += "&page=" + page;
         }
-        if (limit != null) {
-            url += "&itemsPerPage=" + limit;
+        if (itemsPerPage != null) {
+            url += "&itemsPerPage=" + itemsPerPage;
         }
         if (query != null) {
             url += "&query=" + query;
@@ -157,11 +157,13 @@ public class API {
     @Produces(MediaType.APPLICATION_XML)
     public Response getContent(
             @ApiParam(value = "Edition id", name = "identifier", required = true) @QueryParam("identifier") String identifier,
-            @ApiParam(value = "Edition id", name = "objectId", required = true) @QueryParam("objectId") String objectId)
+            @ApiParam(value = "Object id", name = "objectId", required = true) @QueryParam("objectId") String objectId)
             throws Exception {
 
         URLReader reader = new URLReader();
         String url = contentURL  + identifier +  objectId;
+
+        System.out.println(url);
         Document xmlDocument = reader.getDocument(url);
         return Response.status(200).entity(xmlDocument).build();
     }
@@ -192,7 +194,7 @@ public class API {
     public Response getDSFLPhotos(
             @ApiParam(value = "The bounding box", name = "bbo", required = true) @QueryParam("bbo") String bbo,
             @ApiParam(value = "Pagination-Page", name = "page") @QueryParam("page") String page,
-            @ApiParam(value = "Pagination-Limit", name = "limit") @QueryParam("limit") String limit,
+            @ApiParam(value = "Pagination-Limit", name = "itemsPerPage") @QueryParam("itemsPerPage") String itemsPerPage,
             @ApiParam(value = "default is 1920-01-01, Do not return pictures before this date YYYY-MM-DD", name = "notBefore") @QueryParam("notBefore") String notBefore,
             @ApiParam(value = "default is 1970-12-31, Do not return pictures before this date YYYY-MM-DD", name = "notAfter") @QueryParam("notAfter") String notAfter)
             throws Exception {
@@ -201,7 +203,6 @@ public class API {
         pictures.setType("FeatureCollection");
         String totalResults = "unknown";
         String startIndex = "unknown";
-        String itemsPerPage = "unknown";
         List<Picture> pictureList = new ArrayList<Picture>();
         URLReader reader = new URLReader();
 
@@ -217,8 +218,8 @@ public class API {
         if (page != null) {
             url += "&page=" + page;
         }
-        if (limit != null) {
-            url += "&itemsPerPage=" + limit;
+        if (itemsPerPage != null) {
+            url += "&itemsPerPage=" + itemsPerPage;
         }
 
         Document xmlDocument = reader.getDocument(url);
