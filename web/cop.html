@@ -2,8 +2,11 @@
     <head>
         <title>KB API Demo</title>
 
+
         <!-- JQUERY -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
         <!-- BOOTSTRAP -->
         <!-- Latest compiled and minified CSS -->
@@ -15,6 +18,9 @@
         <script type="text/javascript" src="js/jquery.simplePagination.js"></script>
         <link type="text/css" rel="stylesheet" href="css/simplePagination.css"/>
 
+        <!-- CLIPBOARD -->
+        <script src="js/clipboard.min.js"></script>
+
         <!-- Optional theme -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
               integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
@@ -25,72 +31,9 @@
                 integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
                 crossorigin="anonymous"></script>
 
+        <link type="text/css" rel="stylesheet" href="css/style.css"/>
+
     </head>
-    <style>
-
-        body {
-            padding-top: 50px;
-        }
-
-        .starter-template {
-            padding: 40px 15px;
-            text-align: center;
-        }
-
-        .navbar-brand {
-            background: transparent url(/images/logo_inverse.png) no-repeat top left !important;
-            background-size: cover;
-            width: 150px;
-        }
-
-        div.gallery {
-            border: 1px solid #ccc;
-        }
-
-        div.gallery:hover {
-            border: 1px solid #777;
-        }
-
-        div.gallery img {
-            width: 100%;
-            height: auto;
-        }
-
-        div.desc {
-            padding: 15px;
-            text-align: center;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        .responsive {
-            padding: 0 6px;
-            float: left;
-            width: 24.99999%;
-        }
-
-        @media only screen and (max-width: 700px) {
-            .responsive {
-                width: 49.99999%;
-                margin: 6px 0;
-            }
-        }
-
-        @media only screen and (max-width: 500px) {
-            .responsive {
-                width: 100%;
-            }
-        }
-
-        .clearfix:after {
-            content: "";
-            display: table;
-            clear: both;
-        }
-
-    </style>
 
     <body>
         <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -124,7 +67,7 @@
                         </div>
                         <div class="form-group">
 
-                            <input type="text" placeholder="Search" class="form-control" id="query">
+                            <input type="text" placeholder="Search (coma separated)" class="form-control" id="query">
                         </div>
                         <div class="form-group">
                             <input type="text" placeholder="Not before YYYY-MM-DD" class="form-control" id="notBefore">
@@ -136,11 +79,40 @@
                         <button type="submit" class="btn btn-default">Submit</button>
                     </form>
                 </div>
+                <div id="url">
+                    <div class="input-group">
+                        <span class="input-group-addon input-group-addon-text">JSON</span>
+                        <input id="json" class="form-control url" placeholder="Use the search bar to get URL">
+                        <span class="btn input-group-addon" data-clipboard-target="#json">
+                           <img class="clippy" src="images/clippy.svg" alt="Copy to clipboard">
+                        </span>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon input-group-addon-text">RSS</span>
+                        <input id="rss" class="form-control url" placeholder="Use the search bar to get URL">
+                        <span class="btn input-group-addon" data-clipboard-target="#rss">
+                           <img class="clippy" src="images/clippy.svg" alt="Copy to clipboard">
+                        </span>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon input-group-addon-text">KML</span>
+                        <input id="kml" class="form-control url" placeholder="Use the search bar to get URL">
+                        <span class="btn input-group-addon" data-clipboard-target="#kml">
+                           <img class="clippy" src="images/clippy.svg" alt="Copy to clipboard">
+                        </span>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon input-group-addon-text">MODS</span>
+                        <input id="mods" class="form-control url" placeholder="Use the search bar to get URL">
+                        <span class="btn input-group-addon" data-clipboard-target="#mods">
+                           <img class="clippy" src="images/clippy.svg" alt="Copy to clipboard">
+                        </span>
+                    </div>
+
+                </div>
+                <br>
+                <div id="total" class="total"></div>
                 <div class="pagination"></div>
-                <br>
-                <div id="total"></div>
-                <div id="url"></div>
-                <br>
                 <div id="content"></div>
             </div>
         </div>
@@ -161,14 +133,16 @@
                 + "&after=" + $('#notAfter').val()
                 + "&before=" + $('#notBefore').val()
                 + "&page=" + currentPage;
-            var html = "<h3>URL</h3><strong>JSON: </strong>http://localhost:8080/" + url;
-            html += "<br><strong>RSS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" + "notBefore=" + $('#notBefore').val()+ "&notAfter=" + $('#notAfter').val() + "&format=rss";
-            html += "<br><strong>KML: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" +  "notBefore=" + $('#notBefore').val()+ "&notAfter=" + $('#notAfter').val()+ "&format=kml";
-            html += "<br><strong>MODS: </strong> http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage  + "&" + "notBefore=" + $('#notBefore').val() + "&notAfter=" + $('#notAfter').val()+ "&format=mods";
-            $('#url').html(html);
+
+            var url2 = "http://www.kb.dk/cop/syndication" + $('#editions').val() + "?itemsPerPage=50&query=" + $('#query').val() + "&page=" + currentPage + "&notBefore=" + $('#notBefore').val() + "&notAfter=" + $('#notAfter').val();
+
+            $("#json").val(url);
+            $("#rss").val(url2 + "&format=rss");
+            $("#mods").val(url2 + "&format=mods");
+            $("#kml").val(url2 + "&format=kml");
 
             //Abort on new request
-            if (xhr != null){
+            if (xhr != null) {
                 xhr.abort();
             }
 
@@ -191,8 +165,9 @@
                     $('#content').html(html);
 
                     //initialise the pagination
-                    initializePagination(response.getResponseHeader('Pagination-Count'));
-
+                    if (pagination == null) {
+                        initializePagination(response.getResponseHeader('Pagination-Count'));
+                    }
                 },
                 error: function () {
                     $('#content').html('<div class="alert alert-info"><strong>Sorry</strong> No data available</div>');
@@ -223,7 +198,7 @@
             } else {
                 pagination = $('.pagination').pagination({
                     pages: totalPage,
-                    cssStyle: 'compact-theme',
+                    cssStyle: 'light-theme',
                     onPageClick: function (pageNumber, event) {
                         getData(pageNumber);
                     }
@@ -231,18 +206,70 @@
             }
         }
 
+        function getNewDate(year, month, picker){
+            var daysInMonth = new Date(year, month, 0).getDate();
+            var oldDate = picker.datepicker('getDate');
+            if (oldDate != null){
+                var oldDay = oldDate.getDate();
+                if (oldDay > daysInMonth)
+                    oldDay = daysInMonth;
+                var newDate = new Date(year, month - 1, oldDay, 0, 0, 0);
+            }else{
+                var newDate = new Date(year, month - 1, 1, 0, 0, 0);
+            }
+
+            picker.datepicker('setDate', newDate);
+        }
+
         $(document).ready(function () {
 
             getEditions();
 
-            $('#editions').on('change', function() {
+
+
+            $('#editions').on('change', function () {
+                pagination = null;
                 getData(1);
             })
 
             $("#form").submit(function (event) {
+                pagination = null;
                 getData(1);
                 event.preventDefault();
             });
+
+            // initialise the copy to clipboard
+            new Clipboard('.btn');
+
+            //initialise datepicker
+            var dateFormat = 'yy-mm-dd';
+            var from = $("#notBefore").datepicker({
+                dateFormat: dateFormat,
+                defaultDate: "+1w",
+                changeMonth: true,
+                changeYear: true,
+                yearRange: "1000:-nn",
+                numberOfMonths: 1,
+                firstDay: 1,
+                onChangeMonthYear: function (year, month, datePicker) {
+                    getNewDate(year, month, from);
+                }
+            });
+
+            var to = $("#notAfter").datepicker({
+                dateFormat: dateFormat,
+                defaultDate: "+1w",
+                changeMonth: true,
+                changeYear: true,
+                yearRange: "1000:-nn",
+                numberOfMonths: 1,
+                firstDay: 1,
+                onChangeMonthYear: function (year, month, datePicker) {
+                    getNewDate(year, month, to);
+                }
+            });
+
+
         });
     </script>
 

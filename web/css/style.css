@@ -1,0 +1,107 @@
+body {
+    padding-top: 50px;
+}
+
+
+.form-control{
+    border: 1px solid #ffc1a7;
+    border-radius: 4px;
+}
+
+.light-theme .current {
+    background: #ffc1a7;
+    border-color: #ffc1a7;
+    box-shadow: 0 1px 0 rgba(255,255,255,1), 0 0 2px rgba(0, 0, 0, 0.3) inset;
+    cursor: default;
+}
+
+.total, .light-theme a, .light-theme span{
+    color: #337ab7;
+}
+
+
+
+div.desc {
+    color: #337ab7;
+}
+
+
+.url {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.starter-template {
+    padding: 40px 15px;
+    text-align: center;
+}
+
+.navbar-brand {
+    background: transparent url(/images/logo_inverse.png) no-repeat top left !important;
+    background-size: cover;
+    width: 150px;
+}
+
+div.gallery {
+    border: 1px solid #ccc;
+}
+
+div.gallery:hover {
+    border: 1px solid #777;
+}
+
+div.gallery img {
+    width: 100%;
+    height: auto;
+}
+
+div.desc {
+    padding: 15px;
+    text-align: center;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.responsive {
+    padding: 0 6px;
+    float: left;
+    width: 24.99999%;
+}
+
+@media only screen and (max-width: 700px) {
+    .responsive {
+        width: 49.99999%;
+        margin: 6px 0;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .responsive {
+        width: 100%;
+    }
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.clippy {
+    margin-top: -3px;
+    position: relative;
+    top: 3px;
+    width: 13px;
+}
+
+.input-group-addon-text{
+    width: 80px;
+    color: #337ab7;
+    background: -webkit-linear-gradient(top, #ffffff 0%,#efefef 100%);
+}
+
+.ui-datepicker{
+    z-index: 100 !important;
+}
