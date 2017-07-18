@@ -116,8 +116,6 @@ public class API {
             url += "&notAfter=" + notAfter;
         }
 
-        System.out.println(url);
-
         Document xmlDocument = reader.getDocument(url);
         XPathFactory factory = XPathFactory.newInstance();
         XPath xPath = factory.newXPath();
@@ -126,6 +124,8 @@ public class API {
         NodeList nameList = (NodeList) xPath.compile("//Placemark/name").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList thumbnailList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectThumbnailSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
         NodeList linkList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectLink']").evaluate(xmlDocument, XPathConstants.NODESET);
+        NodeList imageURIList = (NodeList) xPath.compile("//Placemark/ExtendedData/Data[@name='subjectImageSrc']").evaluate(xmlDocument, XPathConstants.NODESET);
+
 
         totalResults = (String) xPath.evaluate("//totalResults", xmlDocument);
         itemsPerPage = (String) xPath.evaluate("//itemsPerPage", xmlDocument);
@@ -137,6 +137,7 @@ public class API {
             edition.setThumbnailURI(thumbnailList.item(i).getTextContent());
             edition.setLink(linkList.item(i).getTextContent());
             edition.setTitle(nameList.item(i).getTextContent());
+            edition.setImageURI(imageURIList.item(i).getTextContent());
             editions.add(edition);
         }
 
@@ -162,8 +163,6 @@ public class API {
 
         URLReader reader = new URLReader();
         String url = contentURL  + identifier +  objectId;
-
-        System.out.println(url);
         Document xmlDocument = reader.getDocument(url);
         return Response.status(200).entity(xmlDocument).build();
     }
